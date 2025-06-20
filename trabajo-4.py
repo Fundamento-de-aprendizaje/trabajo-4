@@ -1,7 +1,7 @@
 # Librerías
 import pandas as pd
 import numpy as np
-
+from collections import Counter
 # ------------------------- FUNCIÓN 1 ------------------------- #
 
 def descargar_dataset(url):
@@ -61,7 +61,7 @@ def clasificar(x):
 # === 2. DIVISIÓN ENTRE ENTRENAMIENTO Y PRUEBA ===#la buena es la 20
 def dividir_entrenamiento_prueba(x, y, prueba_size=0.2, random_state=20):
     np.random.seed(random_state)
-    indices = np.random.permutation(len(x))
+    indices = np.random.permutation(len(x))#que es?
     n_train = int(len(x) * (1 - prueba_size))
     x_entrenamiento = x[indices[:n_train]]
     x_prueba = x[indices[n_train:]]
@@ -69,6 +69,55 @@ def dividir_entrenamiento_prueba(x, y, prueba_size=0.2, random_state=20):
     y_prueba = y[indices[n_train:]]
     print(f"Entrenamiento: {len(x_entrenamiento)}, Prueba: {len(x_prueba)}")
     return x_entrenamiento, x_prueba, y_entrenamiento, y_prueba
+# ------------------------- Ej 2 - Punto 2 ------------------------- #
+def calcular_distancia(x1, x2):
+    """
+    Calcula la distancia euclidiana entre dos vectores (dos filas de datos).
+    """
+    return np.sqrt(np.sum((x1 - x2) ** 2))
+
+
+# np.sqrt(np.sum((x1 - x2), (x1 - x2) ))
+
+# ------------------- 2. FUNCIÓN PRINCIPAL DE KNN -------------------
+def knn_predict(x_entrenamiento, y_train, x_prueba, k):
+    """
+    Predice la clase de cada ejemplo en x_prueba usando KNN con voto simple.
+    """
+    predicciones = []
+
+    for i in range(len(x_prueba)):
+        distancias = []
+
+        # Calcular la distancia de este x_prueba[i] con cada x_entrenamiento[j]
+        for j in range(len(x_entrenamiento)):
+            distancia = calcular_distancia(x_prueba[i], x_entrenamiento[j])
+            etiqueta = y_entrenamiento[j]
+            distancias.append((distancia, etiqueta))
+
+        # Ordenar las distancias de menor a mayor
+        distancias.sort(key=lambda tupla: tupla[0])
+
+        # Tomar los k vecinos más cercanos
+        vecinos = distancias[:k]
+
+        # Votar la clase más frecuente
+        clases = [etiqueta for _, etiqueta in vecinos]
+        clase_mas_comun = Counter(clases).most_common(1)[0][0]
+
+        # Guardar predicción
+        predicciones.append(clase_mas_comun)
+
+    return np.array(predicciones)
+
+
+# ------------------- 3. FUNCIÓN PARA CALCULAR ACCURACY -------------------
+def calcular_accuracy(y_real, y_predicho):
+    """
+    Calcula el porcentaje de predicciones correctas.
+    """
+    return np.mean(y_real == y_predicho)
+
 
 
 ##########################################################################################
@@ -92,3 +141,9 @@ x = df_transformado[['residual sugar', 'chlorides', 'free sulfur dioxide','total
 y = df_transformado['quality'].values
 
 x_entrenamiento, x_prueba, y_entrenamiento, y_prueba = dividir_entrenamiento_prueba(x, y)
+
+# Evaluar los tres valores de k
+for k in [3, 5, 7]:
+    y_pred = knn(x_entrenamiento, y_entrenamiento, x_prueba, k, ponderado=False)
+    acc = evaluar_accuracy(y_prueba, y_pred)
+    print(f"🔹 Accuracy para k = {k}: {acc:.4f}")
