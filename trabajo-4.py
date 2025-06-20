@@ -74,13 +74,28 @@ def calcular_distancia(x1, x2):
     """
     Calcula la distancia euclidiana entre dos vectores (dos filas de datos).
     """
+    
     return np.sqrt(np.sum((x1 - x2) ** 2))
 
+# def calcular_media_desvio(df, columnas):
+#     """
+#     Calcula y muestra la media y desvío estándar de las columnas numéricas indicadas.
+#     """
+#     print("\n--- Estadísticas ---")
+#     for col in columnas:
+#         media = df[col].mean()
+#         desvio = df[col].std()
+#         print(f"{col} → Media: {media:.2f}, Desvío estándar: {desvio:.2f}")
+
+# columnas_a_analizar = ['residual sugar', 'chlorides', 'free sulfur dioxide',
+#                        'total sulfur dioxide', 'density', 'pH', 'sulphates', 'alcohol']
+
+# calcular_media_desvio(x_entrenamiento, columnas_a_analizar)
 
 # np.sqrt(np.sum((x1 - x2), (x1 - x2) ))
 
 # ------------------- 2. FUNCIÓN PRINCIPAL DE KNN -------------------
-def knn_predict(x_entrenamiento, y_train, x_prueba, k):
+def knn_predict(x_entrenamiento, y_entrenamiento, x_prueba, k):
     """
     Predice la clase de cada ejemplo en x_prueba usando KNN con voto simple.
     """
@@ -100,14 +115,20 @@ def knn_predict(x_entrenamiento, y_train, x_prueba, k):
 
         # Tomar los k vecinos más cercanos
         vecinos = distancias[:k]
+       
 
         # Votar la clase más frecuente
         clases = [etiqueta for _, etiqueta in vecinos]
         clase_mas_comun = Counter(clases).most_common(1)[0][0]
+     
 
         # Guardar predicción
         predicciones.append(clase_mas_comun)
-
+        # if(i<5):
+        #     print("vecinos",vecinos)
+        #     print("Clases:", clases)
+        #     print ("Counter clases [0][0]", Counter(clases).most_common(1)[0][0])
+        #     print("Lista", predicciones)
     return np.array(predicciones)
 
 
@@ -117,6 +138,27 @@ def calcular_accuracy(y_real, y_predicho):
     Calcula el porcentaje de predicciones correctas.
     """
     return np.mean(y_real == y_predicho)
+
+def calcular_estadisticas_numpy(arr):
+    """
+    Calcula y muestra la media y el desvío estándar de cada columna de un array NumPy.
+
+    Parámetro:
+    - arr: array de NumPy (solo con valores numéricos)
+
+    Retorna:
+    - Lista de tuplas (media, desvío) por columna
+    """
+    medias = np.mean(arr, axis=0)
+    desvios = np.std(arr, axis=0)  # por defecto usa n (no n-1), si querés que sea n-1: ddof=1
+
+    estadisticas = []
+
+    for i in range(len(medias)):
+        print(f"Columna {i} → Media: {medias[i]:.4f} | Desvío estándar: {desvios[i]:.4f}")
+        estadisticas.append((medias[i], desvios[i]))
+
+    return estadisticas
 
 
 
@@ -137,13 +179,18 @@ print(df_transformado[['quality', 'objetivo']].head())
 
 
 # Entradas (X) y salida (y)
-x = df_transformado[['residual sugar', 'chlorides', 'free sulfur dioxide','total sulfur dioxide','density','pH','sulphates','alcohol']].values
+x = df_transformado[['fixed acidity','volatile acidity','citric acid','residual sugar', 'chlorides', 'free sulfur dioxide','total sulfur dioxide','density','pH','sulphates','alcohol']].values
 y = df_transformado['quality'].values
 
 x_entrenamiento, x_prueba, y_entrenamiento, y_prueba = dividir_entrenamiento_prueba(x, y)
 
 # Evaluar los tres valores de k
 for k in [3, 5, 7]:
-    y_pred = knn(x_entrenamiento, y_entrenamiento, x_prueba, k, ponderado=False)
-    acc = evaluar_accuracy(y_prueba, y_pred)
+    y_pred = knn_predict(x_entrenamiento, y_entrenamiento, x_prueba, k)
+    acc = calcular_accuracy(y_prueba, y_pred)
+   #print("Nose que pingo es pero bueno",y_pred)
     print(f"🔹 Accuracy para k = {k}: {acc:.4f}")
+print(x_entrenamiento)
+
+
+medidasYDesvio = calcular_estadisticas_numpy(x_entrenamiento)
