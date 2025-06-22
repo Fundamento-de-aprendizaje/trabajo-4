@@ -60,7 +60,7 @@ def clasificar(x):
 
 # === 2. DIVISIÓN ENTRE ENTRENAMIENTO Y PRUEBA ===#
 
-def dividir_entrenamiento_prueba(x, y, prueba_size=0.2, random_state=87):
+def dividir_entrenamiento_prueba(x, y, prueba_size=0.2, random_state=42):
     np.random.seed(random_state)
     indices = np.random.permutation(len(x))
     
@@ -119,6 +119,39 @@ def knn_predict(x_entrenamiento, y_entrenamiento, x_prueba, k):
     return np.array(predicciones)
 
 
+######## KNN PONDERADO ########
+
+def knn_predict_ponderado(x_entrenamiento, y_entrenamiento, x_prueba, k):
+    """
+    Predice la clase usando k vecinos ponderados con peso = 1/d^2.
+    """
+    predicciones = []
+    # estandariza igual que en knn_predict
+    x_entrenamiento_std, x_prueba_std = estandarizar_datos(x_entrenamiento, x_prueba)
+    
+    for i in range(len(x_prueba_std)):
+        # calculo distancias al cuadrado        
+        distancias = []
+        for j in range(len(x_entrenamiento_std)):
+            distanciaAlCuadrado = calcular_distancia(x_prueba_std[i], x_entrenamiento_std[j])**2
+            etiqueta = y_entrenamiento[j]
+            distancias.append((distanciaAlCuadrado, etiqueta))
+
+
+        distancias.sort(key=lambda t: t[0])
+        vecinos = distancias[:k]
+        # acumula peso por clase
+        pesos = {}
+        for distanciaAlCuadrado, etiqueta in vecinos:
+            peso = 1/(distanciaAlCuadrado + 1e-8)
+            pesos[etiqueta] = pesos.get(etiqueta, 0) + peso
+        # elige la clase de mayor peso
+        predicciones.append(max(pesos, key=pesos.get))
+       
+    return np.array(predicciones)
+
+
+
 # ------------------- 3. FUNCIÓN PARA CALCULAR ACCURACY -------------------
 def calcular_tasa_aciertos(y_real, y_predicho):
     """
@@ -158,3 +191,17 @@ for k in [3, 5, 7]:
     print(f"Tasa de aciertos para k = {k}: {tasa:.4f}")
 mejor_k = max(resultados, key=resultados.get)
 print(f"\n✅ k recomendado: {mejor_k} (tasa de aciertos = {resultados[mejor_k]:.4f})")  
+
+
+# ítem 3: KNN ponderado con el k recomendado
+y_pred_pond = knn_predict_ponderado(x_entrenamiento, y_entrenamiento, x_prueba, mejor_k)
+tasa_pond = calcular_tasa_aciertos(y_prueba, y_pred_pond)
+print(f"\n🔸 KNN ponderado (k={mejor_k}) → tasa de aciertos = {tasa_pond:.4f}")
+
+# comparar
+if tasa_pond > resultados[mejor_k]:
+    print("\n ✅ El KNN ponderado MEJORA el rendimiento frente al no ponderado.")
+elif tasa_pond < resultados[mejor_k]:
+    print("❌ El KNN ponderado empeora el rendimiento.")
+else:
+    print("➖ El KNN ponderado ofrece el mismo rendimiento.")
