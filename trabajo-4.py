@@ -60,23 +60,17 @@ def clasificar(x):
 
 # === 2. DIVISIÓN ENTRE ENTRENAMIENTO Y PRUEBA ===#
 
-
-def dividir_entrenamiento_prueba(x, y, prueba_size=0.2, random_state=20):
-    """
-    Divide los datos en entrenamiento y prueba sin mezclar (manteniendo el orden original).
-    La semilla se incluye para compatibilidad, pero no se usa ya que no se aleatoriza.
-    """
-    np.random.seed(random_state)  # No se usa en esta versión, pero queda para compatibilidad
+def dividir_entrenamiento_prueba(x, y, prueba_size=0.2, random_state=87):
+    np.random.seed(random_state)
+    indices = np.random.permutation(len(x))
+    
     n_train = int(len(x) * (1 - prueba_size))
-    
-    x_entrenamiento = x[:n_train]
-    x_prueba = x[n_train:]
-    y_entrenamiento = y[:n_train]
-    y_prueba = y[n_train:]
-    
+    x_entrenamiento = x[indices[:n_train]]
+    x_prueba = x[indices[n_train:]]
+    y_entrenamiento = y[indices[:n_train]]
+    y_prueba = y[indices[n_train:]]
     print(f"Entrenamiento: {len(x_entrenamiento)}, Prueba: {len(x_prueba)}")
     return x_entrenamiento, x_prueba, y_entrenamiento, y_prueba
-
 # ------------------------- Ej 2 - Punto 2 ------------------------- #
 def calcular_distancia(x1, x2):
     """
@@ -121,13 +115,12 @@ def knn_predict(x_entrenamiento, y_entrenamiento, x_prueba, k):
         clase_mas_comun = Counter(clases).most_common(1)[0][0]
         # Guardar predicción
         predicciones.append(clase_mas_comun)
-        if (i==10):
-            print("predicciones",predicciones)    
+          
     return np.array(predicciones)
 
 
 # ------------------- 3. FUNCIÓN PARA CALCULAR ACCURACY -------------------
-def calcular_accuracy(y_real, y_predicho):
+def calcular_tasa_aciertos(y_real, y_predicho):
     """
     Calcula el porcentaje de predicciones correctas.
     """
@@ -157,11 +150,11 @@ y = df_transformado['objetivo'].values
 x_entrenamiento, x_prueba, y_entrenamiento, y_prueba = dividir_entrenamiento_prueba(x, y)
 
 # Evaluar los tres valores de k
+resultados = {}
 for k in [3, 5, 7]:
     y_pred = knn_predict(x_entrenamiento, y_entrenamiento, x_prueba, k)
-    print("K", k)
-    # print("y_pred:", y_pred)
-    acc = calcular_accuracy(y_prueba, y_pred)
-   
-    print(f"🔹 Accuracy para k = {k}: {acc:.4f}")
-
+    tasa = calcular_tasa_aciertos(y_prueba, y_pred)
+    resultados[k] = tasa
+    print(f"Tasa de aciertos para k = {k}: {tasa:.4f}")
+mejor_k = max(resultados, key=resultados.get)
+print(f"\n✅ k recomendado: {mejor_k} (tasa de aciertos = {resultados[mejor_k]:.4f})")  
