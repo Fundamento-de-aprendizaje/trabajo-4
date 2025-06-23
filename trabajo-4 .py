@@ -159,9 +159,9 @@ def calcular_tasa_aciertos(y_real, y_predicho):
     return np.mean(y_real == y_predicho)
 
 ## PUNTO 3 ####################################################################
-def k_means_desde_cero(x, k, max_iter=1000):
+def k_means(x, k, max_iter=1000):
     """
-    Implementa el algoritmo de K-Means desde cero.
+    Implementa el algoritmo de K-Means.
     x: matriz de datos (numpy)
     k: número de clusters
     """
@@ -335,7 +335,7 @@ x_entrenamiento_std, x_prueba_std = estandarizar_datos(x_entrenamiento, x_prueba
 # Probar con distintos valores de k
 for k in [2, 3, 4]:
    # print(f"\n--- K-Means con k = {k} ---")
-    asignaciones, centroides = k_means_desde_cero(x_entrenamiento_std, k)
+    asignaciones, centroides = k_means(x_entrenamiento_std, k)
     
     # Asignar los datos de prueba al cluster más cercano
     asignaciones_entrenamiento = []
