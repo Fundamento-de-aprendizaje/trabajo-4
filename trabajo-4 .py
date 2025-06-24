@@ -63,7 +63,7 @@ def clasificar(x):
 
 # === 2. DIVISIÓN ENTRE ENTRENAMIENTO Y PRUEBA ===#
 
-def dividir_entrenamiento_prueba(x, y, prueba_size=0.2, random_state=87):
+def dividir_entrenamiento_prueba(x, y, prueba_size=0.2, random_state=100):
     np.random.seed(random_state)
     indices = np.random.permutation(len(x))
     
@@ -235,9 +235,10 @@ def graficar_clusters_pca(x_std, y_reales, asignaciones, centroides, k):
     x_centered = x_std - media
     cov = np.cov(x_centered.T)#Se calcula la matriz de covarianza.
     valores, vectores = np.linalg.eig(cov)#Se extraen sus autovalores y autovectores.
+       
     idx = np.argsort(valores)[::-1]#Se ordenan los vectores según los dos autovalores más grandes (los que más varianza explican).
     componentes = vectores[:, idx[:2]] #Resultado: componentes es una matriz 2D para proyectar a 2 dimensiones.
-
+   
     x_2d = x_centered @ componentes  #Se proyectan los datos x_std y los centroides 
     centroides_2d = (centroides - media) @ componentes #al nuevo espacio 2D usando los componentes principales.
 
@@ -261,7 +262,7 @@ def graficar_clusters_pca(x_std, y_reales, asignaciones, centroides, k):
     # Centroides en X negras
     plt.scatter(
         centroides_2d[:, 0], centroides_2d[:, 1],
-        marker='X', color='#dbc800', s=150, label='Centroides'
+        marker='X', color="#FF7301", s=150, label='Centroides'
     )
 
     # Leyenda
@@ -275,6 +276,9 @@ def graficar_clusters_pca(x_std, y_reales, asignaciones, centroides, k):
     plt.xlabel("Estandarizada X")
     plt.ylabel("Estandarizada Y")
     plt.grid(True)
+    ax = plt.gca()
+    ax.set_facecolor("#A8D6AA")  # Fondo gris claro, podés usar cualquier color
+
     plt.tight_layout()
     plt.show()
 
@@ -353,6 +357,6 @@ for k in [2, 3, 4]:
     # Evaluar qué tan bien se alinean los clusters con las clases reales
     tasa, mapeo_clusters = evaluar_clusters(asignaciones_entrenamiento, y_entrenamiento)
     
-    graficar_clusters_pca(x_entrenamiento_std, y_entrenamiento, asignaciones, centroides, k)
+    # graficar_clusters_pca(x_entrenamiento_std, y_entrenamiento, asignaciones, centroides, k)
 
  
