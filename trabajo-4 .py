@@ -168,7 +168,7 @@ def k_means(x, k, max_iter=1000):
     x: matriz de datos (numpy)
     k: número de clusters
     """
-    np.random.seed(87)
+    np.random.seed(87)#Fija la semilla aleatoria para resultados reproducibles.
     # Elegir k puntos aleatorios como centroides iniciales
     indices_iniciales = np.random.choice(len(x), k, replace=False)
    
@@ -177,10 +177,10 @@ def k_means(x, k, max_iter=1000):
     for _ in range(max_iter):
         # Asignar cada punto al cluster más cercano
         asignaciones = []
-        for fila in x:
+        for fila in x:   #A cada punto del dataset (fila) le calcula la distancia a cada centroide.
             distancias = [calcular_distancia(fila, centroide) for centroide in centroides]
-            cluster_cercano = np.argmin(distancias)
-            asignaciones.append(cluster_cercano)
+            cluster_cercano = np.argmin(distancias)#Lo asigna al centroide más cercano.
+            asignaciones.append(cluster_cercano)#Guarda el índice del cluster correspondiente.
         asignaciones = np.array(asignaciones)
 
         # Recalcular centroides
@@ -188,41 +188,19 @@ def k_means(x, k, max_iter=1000):
         for i in range(k):
             puntos_del_cluster = x[asignaciones == i]
             if len(puntos_del_cluster) > 0:
+                #Calcula el nuevo centroide como la media de los puntos del grupo.
                 nuevos_centroides.append(puntos_del_cluster.mean(axis=0))
             else:
-                nuevos_centroides.append(centroides[i])  # No cambiarlo si quedó vacío
+                nuevos_centroides.append(centroides[i])  # Si un grupo quedó vacío, mantiene su centroide anterior.
         nuevos_centroides = np.array(nuevos_centroides)
 
-        # Verificar convergencia
+        # Verificar convergencia. Compara si los nuevos centroides son casi iguales a los anteriores.
         if np.allclose(centroides, nuevos_centroides):
-            break
+            break #Si sí, se detiene porque el algoritmo converge.
 
         centroides = nuevos_centroides
 
     return asignaciones, centroides
-
-
-def evaluar_clusters(asignaciones, y_reales):
-    """
-    Evalúa los clusters comparando contra las clases reales (y_reales).
-    """
-    etiquetas_unicas = np.unique(y_reales)
-    clusters_unicos = np.unique(asignaciones)
-    
-    # Mapeamos cada cluster a la clase mayoritaria dentro de él
-    mapeo = {}
-    for c in clusters_unicos:
-        clases_en_cluster = y_reales[asignaciones == c]
-        if len(clases_en_cluster) == 0:
-            mapeo[c] = None
-        else:
-            clase_mayoritaria = Counter(clases_en_cluster).most_common(1)[0][0]
-            mapeo[c] = clase_mayoritaria
-
-    # Predecimos usando el mapeo
-    predichos = np.array([mapeo[c] for c in asignaciones])
-    tasa_aciertos = calcular_tasa_aciertos(y_reales, predichos)
-    return tasa_aciertos, mapeo
 
 def graficar_clusters_pca(x_std, y_reales, asignaciones, centroides, k):
     """
@@ -354,9 +332,8 @@ for k in [2, 3, 4]:
         asignaciones_entrenamiento.append(cluster)
     asignaciones_entrenamiento = np.array(asignaciones_entrenamiento)
 
-    # Evaluar qué tan bien se alinean los clusters con las clases reales
-    tasa, mapeo_clusters = evaluar_clusters(asignaciones_entrenamiento, y_entrenamiento)
+
     
-    # graficar_clusters_pca(x_entrenamiento_std, y_entrenamiento, asignaciones, centroides, k)
+    graficar_clusters_pca(x_entrenamiento_std, y_entrenamiento, asignaciones, centroides, k)
 
  

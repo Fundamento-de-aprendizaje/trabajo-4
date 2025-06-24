@@ -42,3 +42,28 @@ def knn_predict(x_entrenamiento, y_entrenamiento, x_prueba, k, ponderado=False):
             predicciones.append(max(pesos, key=pesos.get))
     
     return np.array(predicciones)
+
+
+def evaluar_clusters(asignaciones, y_reales):
+    """
+    Evalúa los clusters comparando contra las clases reales (y_reales).
+    """
+    etiquetas_unicas = np.unique(y_reales)
+    clusters_unicos = np.unique(asignaciones)
+    
+    # Mapeamos cada cluster a la clase mayoritaria dentro de él
+    mapeo = {}
+    for c in clusters_unicos:
+        clases_en_cluster = y_reales[asignaciones == c]
+        if len(clases_en_cluster) == 0:
+            mapeo[c] = None
+        else:
+            clase_mayoritaria = Counter(clases_en_cluster).most_common(1)[0][0]
+            mapeo[c] = clase_mayoritaria
+
+    # Predecimos usando el mapeo
+    predichos = np.array([mapeo[c] for c in asignaciones])
+    tasa_aciertos = calcular_tasa_aciertos(y_reales, predichos)
+    return tasa_aciertos, mapeo
+    # Evaluar qué tan bien se alinean los clusters con las clases reales
+    tasa, mapeo_clusters = evaluar_clusters(asignaciones_entrenamiento, y_entrenamiento)
