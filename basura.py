@@ -67,3 +67,13 @@ def evaluar_clusters(asignaciones, y_reales):
     return tasa_aciertos, mapeo
     # Evaluar qué tan bien se alinean los clusters con las clases reales
     tasa, mapeo_clusters = evaluar_clusters(asignaciones_entrenamiento, y_entrenamiento)
+
+        # Asignar los datos de prueba al cluster más cercano
+    # asignaciones_entrenamiento = []
+    # for fila in x_entrenamiento_std:
+    #     distancias = [calcular_distancia(fila, centroide) for centroide in centroides]
+    #     cluster = np.argmin(distancias)
+    #     asignaciones_entrenamiento.append(cluster)
+    # asignaciones_entrenamiento = np.array(asignaciones_entrenamiento)
+
+    # print("ASIGNACIONES",asignaciones_entrenamiento)    

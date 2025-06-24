@@ -248,7 +248,7 @@ def graficar_clusters_pca(x_std, y_reales, asignaciones, centroides, k):
                               markerfacecolor=color, markersize=8) for clase, color in colores_clase.items()]
     leyenda_formas = [Line2D([0], [0], marker=forma, color='black', label=f'Cluster {i}',
                              linestyle='None', markersize=8) for i, forma in enumerate(formas_cluster[:k])]
-    plt.legend(handles=leyenda_colores + leyenda_formas, loc='best')
+    plt.legend(handles=leyenda_colores + leyenda_formas, loc='upper left')
 
     plt.title(f"K-Means con k = {k} (PCA 2D)\nColor = clase real, Forma = cluster")
     plt.xlabel("Estandarizada X")
@@ -310,9 +310,6 @@ else:
 
 
 
-
-    
-
 # ---------------- EJERCICIO 3 ---------------- #
 print("\n🔸 EJERCICIO 3: K-MEANS ")
 
@@ -322,18 +319,5 @@ x_entrenamiento_std, x_prueba_std = estandarizar_datos(x_entrenamiento, x_prueba
 # Probar con distintos valores de k
 for k in [2, 3, 4]:
    # print(f"\n--- K-Means con k = {k} ---")
-    asignaciones, centroides = k_means(x_entrenamiento_std, k)
-    
-    # Asignar los datos de prueba al cluster más cercano
-    asignaciones_entrenamiento = []
-    for fila in x_entrenamiento_std:
-        distancias = [calcular_distancia(fila, centroide) for centroide in centroides]
-        cluster = np.argmin(distancias)
-        asignaciones_entrenamiento.append(cluster)
-    asignaciones_entrenamiento = np.array(asignaciones_entrenamiento)
-
-
-    
+    asignaciones, centroides = k_means(x_entrenamiento_std, k)    
     graficar_clusters_pca(x_entrenamiento_std, y_entrenamiento, asignaciones, centroides, k)
-
- 
