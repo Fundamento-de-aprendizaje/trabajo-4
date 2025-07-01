@@ -202,6 +202,25 @@ def k_means(x, k, max_iter=1000):
 
     return asignaciones, centroides
 
+def accuracy_clusters_vs_reales(y_reales, asignaciones, k):
+    from itertools import permutations
+    mejor_accuracy = 0
+    mejores_labels = None
+    for perm in permutations(range(k)):
+        reetiquetado = np.array([perm[i] for i in asignaciones])
+        acc = np.mean(reetiquetado == y_reales)
+        if acc > mejor_accuracy:
+            mejor_accuracy = acc
+            mejores_labels = reetiquetado
+    return mejor_accuracy, mejores_labels
+
+def codificar_etiquetas(etiquetas):
+    clases = sorted(list(set(etiquetas)))
+    mapa = {nombre: i for i, nombre in enumerate(clases)}
+    mapa_inv = {i: nombre for nombre, i in mapa.items()}
+    etiquetas_codificadas = np.array([mapa[et] for et in etiquetas])
+    return etiquetas_codificadas, mapa, mapa_inv
+
 def graficar_clusters_pca(x_std, y_reales, asignaciones, centroides, k):
     """
     Aplica PCA a los datos para reducir a 2D y grafica los clusters.
@@ -316,8 +335,18 @@ print("\n🔸 EJERCICIO 3: K-MEANS ")
 # Estandarizar datos
 x_entrenamiento_std, x_prueba_std = estandarizar_datos(x_entrenamiento, x_prueba)
 
+
+
+
 # Probar con distintos valores de k
 for k in [2, 3, 4]:
    # print(f"\n--- K-Means con k = {k} ---")
     asignaciones, centroides = k_means(x_entrenamiento_std, k)    
     graficar_clusters_pca(x_entrenamiento_std, y_entrenamiento, asignaciones, centroides, k)
+    
+    y_codificado, mapa, mapa_inv = codificar_etiquetas(y_entrenamiento)
+    accuracy, mejor_asignacion = accuracy_clusters_vs_reales(y_codificado, asignaciones, k)
+    print(f"Accuracy para k={k}: {accuracy:.2f}")
+    # Casos correctamente clasificados
+    aciertos = np.sum(mejor_asignacion == y_codificado)
+    print(f"Casos correctamente clasificados: {aciertos} de {len(y_codificado)}")
