@@ -202,63 +202,99 @@ def k_means(x, k, max_iter=1000):
 
     return asignaciones, centroides
 
-def graficar_clusters_pca(x_std, y_reales, asignaciones, centroides, k):
-    """
-    Aplica PCA a los datos para reducir a 2D y grafica los clusters.
-    Color = clase real, forma = cluster asignado
-    """
-    # PCA manual
-    #Se centra la matriz (se le resta la media).
-    media = x_std.mean(axis=0)
-    x_centered = x_std - media
-    cov = np.cov(x_centered.T)#Se calcula la matriz de covarianza.
-    valores, vectores = np.linalg.eig(cov)#Se extraen sus autovalores y autovectores.
+def accuracy_clusters_vs_reales(y_reales, asignaciones, k):
+    from itertools import permutations
+    mejor_accuracy = 0
+    mejores_labels = None
+    for perm in permutations(range(k)):
+        reetiquetado = np.array([perm[i] for i in asignaciones])
+        acc = np.mean(reetiquetado == y_reales)
+        if acc > mejor_accuracy:
+            mejor_accuracy = acc
+            mejores_labels = reetiquetado
+    return mejor_accuracy, mejores_labels
+
+def matriz_confusion(y_real, y_pred, k):
+    matriz = np.zeros((k, k), dtype=int)
+
+    for real, pred in zip(y_real, y_pred):
+        print("real",real,"pred",pre)
+        matriz[real][pred] += 1
+    return matriz
+
+def precision_por_clase(conf_mat):
+    precisiones = []
+    for clase in range(len(conf_mat)):
+        VP = conf_mat[clase][clase]
+        FP = sum(conf_mat[:, clase]) - VP
+        precision = VP / (VP + FP) if (VP + FP) > 0 else 0
+        precisiones.append(precision)
+    return precisiones
+
+def codificar_etiquetas(etiquetas):
+    clases = sorted(list(set(etiquetas)))
+    mapa = {nombre: i for i, nombre in enumerate(clases)}
+    mapa_inv = {i: nombre for nombre, i in mapa.items()}
+    etiquetas_codificadas = np.array([mapa[et] for et in etiquetas])
+    return etiquetas_codificadas, mapa, mapa_inv
+
+# def graficar_clusters_pca(x_std, y_reales, asignaciones, centroides, k):
+#     """
+#     Aplica PCA a los datos para reducir a 2D y grafica los clusters.
+#     Color = clase real, forma = cluster asignado
+#     """
+#     # PCA manual
+#     #Se centra la matriz (se le resta la media).
+#     media = x_std.mean(axis=0)
+#     x_centered = x_std - media
+#     cov = np.cov(x_centered.T)#Se calcula la matriz de covarianza.
+#     valores, vectores = np.linalg.eig(cov)#Se extraen sus autovalores y autovectores.
        
-    idx = np.argsort(valores)[::-1]#Se ordenan los vectores según los dos autovalores más grandes (los que más varianza explican).
-    componentes = vectores[:, idx[:2]] #Resultado: componentes es una matriz 2D para proyectar a 2 dimensiones.
+#     idx = np.argsort(valores)[::-1]#Se ordenan los vectores según los dos autovalores más grandes (los que más varianza explican).
+#     componentes = vectores[:, idx[:2]] #Resultado: componentes es una matriz 2D para proyectar a 2 dimensiones.
    
-    x_2d = x_centered @ componentes  #Se proyectan los datos x_std y los centroides 
-    centroides_2d = (centroides - media) @ componentes #al nuevo espacio 2D usando los componentes principales.
+#     x_2d = x_centered @ componentes  #Se proyectan los datos x_std y los centroides 
+#     centroides_2d = (centroides - media) @ componentes #al nuevo espacio 2D usando los componentes principales.
 
-    colores_clase = {"REGULAR": "red", "BUENO": "blue", "EXCELENTE": "green"}
-    formas_cluster = ['s', 'o', '^', 'D', 'v']
+#     colores_clase = {"REGULAR": "red", "BUENO": "blue", "EXCELENTE": "green"}
+#     formas_cluster = ['s', 'o', '^', 'D', 'v']
 
-    plt.figure(figsize=(8, 6))
+#     plt.figure(figsize=(8, 6))
 
-    for i in range(len(x_2d)):
-        clase = y_reales[i]
-        cluster = asignaciones[i]
-        plt.scatter(
-            x_2d[i, 0], x_2d[i, 1],
-            color=colores_clase[clase],
-            marker=formas_cluster[cluster % len(formas_cluster)],
-            edgecolor='black',
-            s=70,
-            alpha=0.7
-        )
+#     for i in range(len(x_2d)):
+#         clase = y_reales[i]
+#         cluster = asignaciones[i]
+#         plt.scatter(
+#             x_2d[i, 0], x_2d[i, 1],
+#             color=colores_clase[clase],
+#             marker=formas_cluster[cluster % len(formas_cluster)],
+#             edgecolor='black',
+#             s=70,
+#             alpha=0.7
+#         )
 
-    # Centroides en X negras
-    plt.scatter(
-        centroides_2d[:, 0], centroides_2d[:, 1],
-        marker='X', color="#FF7301", s=150, label='Centroides'
-    )
+#     # Centroides en X negras
+#     plt.scatter(
+#         centroides_2d[:, 0], centroides_2d[:, 1],
+#         marker='X', color="#FF7301", s=150, label='Centroides'
+#     )
 
-    # Leyenda
-    leyenda_colores = [Line2D([0], [0], marker='o', color='w', label=clase,
-                              markerfacecolor=color, markersize=8) for clase, color in colores_clase.items()]
-    leyenda_formas = [Line2D([0], [0], marker=forma, color='black', label=f'Cluster {i}',
-                             linestyle='None', markersize=8) for i, forma in enumerate(formas_cluster[:k])]
-    plt.legend(handles=leyenda_colores + leyenda_formas, loc='upper left')
+#     # Leyenda
+#     leyenda_colores = [Line2D([0], [0], marker='o', color='w', label=clase,
+#                               markerfacecolor=color, markersize=8) for clase, color in colores_clase.items()]
+#     leyenda_formas = [Line2D([0], [0], marker=forma, color='black', label=f'Cluster {i}',
+#                              linestyle='None', markersize=8) for i, forma in enumerate(formas_cluster[:k])]
+#     plt.legend(handles=leyenda_colores + leyenda_formas, loc='upper left')
 
-    plt.title(f"K-Means con k = {k} (PCA 2D)\nColor = clase real, Forma = cluster")
-    plt.xlabel("Estandarizada X")
-    plt.ylabel("Estandarizada Y")
-    plt.grid(True)
-    ax = plt.gca()
-    ax.set_facecolor("#A8D6AA")  # Fondo gris claro, podés usar cualquier color
+#     plt.title(f"K-Means con k = {k} (PCA 2D)\nColor = clase real, Forma = cluster")
+#     plt.xlabel("Estandarizada X")
+#     plt.ylabel("Estandarizada Y")
+#     plt.grid(True)
+#     ax = plt.gca()
+#     ax.set_facecolor("#A8D6AA")  # Fondo gris claro, podés usar cualquier color
 
-    plt.tight_layout()
-    plt.show()
+#     plt.tight_layout()
+#     plt.show()
 
 
 
@@ -320,4 +356,33 @@ x_entrenamiento_std, x_prueba_std = estandarizar_datos(x_entrenamiento, x_prueba
 for k in [2, 3, 4]:
    # print(f"\n--- K-Means con k = {k} ---")
     asignaciones, centroides = k_means(x_entrenamiento_std, k)    
-    graficar_clusters_pca(x_entrenamiento_std, y_entrenamiento, asignaciones, centroides, k)
+    # graficar_clusters_pca(x_entrenamiento_std, y_entrenamiento, asignaciones, centroides, k)
+    
+    # === Evaluación ===
+    y_codificado, mapa, mapa_inv = codificar_etiquetas(y_entrenamiento)
+    accuracy, mejor_asignacion = accuracy_clusters_vs_reales(y_codificado, asignaciones, k)
+    print(f"Accuracy para k={k}: {accuracy:.2f}")
+
+    # Casos correctamente clasificados
+    aciertos = np.sum(mejor_asignacion == y_codificado)
+    print(f"Casos correctamente clasificados: {aciertos} de {len(y_codificado)}")
+
+    # Matriz de confusión
+    # conf_mat = matriz_confusion(y_codificado, mejor_asignacion, k)
+    # print("Matriz de confusión:")
+    # print(conf_mat)
+
+    # # Precisión por clase (con etiquetas reales)
+
+    # precisiones = precision_por_clase(conf_mat)
+    # # for i, prec in enumerate(precisiones):
+    # #     clase = mapa_inv[i]
+    # #     print(f"Precisión clase '{clase}': {prec:.2f}")
+    # num_clases = len(mapa_inv)
+    # num_clusters = k
+    # limite = min(num_clases, num_clusters)
+
+    # for i in range(limite):
+    #     clase = mapa_inv[i]
+    #     prec = precisiones[i]
+    #     print(f"Precisión clase '{clase}': {prec:.2f}")
